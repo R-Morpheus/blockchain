@@ -43,17 +43,17 @@ func serve(listener net.Listener, handle func(Conn, *Package)) {
 		if err != nil {
 			break
 		}
-		go handleConn(conn net.Conn, handle)
+		go handleConn(conn, handle)
 	}
 }
 
-func Handle(option int,conn Conn, pack *Package, handle func(p *Package)string) bool {
-	if pack.Option != option{
+func Handle(option int, conn Conn, pack *Package, handle func(p *Package) string) bool {
+	if pack.Option != option {
 		return false
 	}
 	conn.Write([]byte(SerializePackage(&Package{
 		Option: option,
-		Data: handle(pack),
+		Data:   handle(pack),
 	}) + ENDBYTES))
 	return true
 }
@@ -61,7 +61,7 @@ func Handle(option int,conn Conn, pack *Package, handle func(p *Package)string) 
 func handleConn(conn net.Conn, handle func(Conn, *Package)) {
 	defer conn.Close()
 	pack := readPackage(conn)
-	if pack == nil{
+	if pack == nil {
 		return
 	}
 	handle(Conn(conn), pack)
