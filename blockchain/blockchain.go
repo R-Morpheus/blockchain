@@ -8,8 +8,8 @@ type Blockchain struct {
 }
 
 type Block struct {
-	CurrHash []byte
-	Prevhash []byte
-	Nonce    uint64
-	difficalty
+	CurrHash   []byte
+	Prevhash   []byte
+	Nonce      uint64
+	Difficulty uint8
 }
