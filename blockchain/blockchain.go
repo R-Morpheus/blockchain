@@ -3,6 +3,8 @@ package blockchain
 import (
 	"crypto/rsa"
 	"database/sql"
+	"encoding/base64"
+	"encoding/json"
 	"os"
 	"time"
 )
@@ -63,7 +65,7 @@ func NewChain(filename, receiver string) error {
 	}
 	file.Close()
 
-	db, err := sql.Open('sqlite3', filename)
+	db, err := sql.Open("sqlite3", filename)
 	if err != nil {
 		return err
 	}
@@ -85,6 +87,18 @@ func NewChain(filename, receiver string) error {
 	return nil
 }
 
+func LoadChain(filename string) *Blockchain{
+	db, err := sql.Open("sqlite3", filename)
+	if err != nil{
+		return nil
+	}
+	chain := &Blockchain{
+		DB: db,
+	}
+	chain.index = chain.Size()
+	return chain
+}
+
 func (chain *Blockchain) AddBlock(block *Block){
 	chain.index += 1
 	chain.DB.Exec("INSERT INTO Blockchain (Hash, Block) VALUES ($1, $2)", 
@@ -93,11 +107,22 @@ func (chain *Blockchain) AddBlock(block *Block){
 	)
 }
 
-func SerializeBlock(block *Block) any {
-	
+func (chain *Blockchain) Size() uint64 {
+	var index uint64
+	row := chain.DB.QueryRow("SELECT Id FROM Blockchain ORDER BY Id DESC")
+	row.Scan(&index)
+	return index
 }
 
-func Base64Encode(hash []byte) any {
-	
+func SerializeBlock(block *Block) string {
+	jsonData, err := json.MarshalIndent(*block, "", "\t")
+	if err != nil {
+		return ""
+	}
+	return string(jsonData)
+}
+
+func Base64Encode(data []byte) any {
+	return base64.StdEncoding.EncodeToString(data)
 }
 
